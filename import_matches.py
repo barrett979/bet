@@ -76,6 +76,9 @@ def import_csv(year, league):
         # parsing date
         df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
 
+        # sostituisci NaN con None (Postgres salva come NULL)
+        df = df.where(pd.notnull(df), None)
+
         # inserisci in Postgres
         with engine.begin() as conn:
             for _, row in df.iterrows():
