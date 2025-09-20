@@ -76,8 +76,13 @@ def import_csv(year, league):
         # parsing date
         df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
 
-        # sostituisci NaN con None (Postgres salva come NULL)
+        # sostituisci NaN con None per compatibilità con Postgres
         df = df.where(pd.notnull(df), None)
+
+        # forza i goals a interi (nullable int)
+        for col in ["fthg", "ftag", "hthg", "htag"]:
+            if col in df.columns:
+                df[col] = df[col].astype("Int64")
 
         # inserisci in Postgres
         with engine.begin() as conn:
