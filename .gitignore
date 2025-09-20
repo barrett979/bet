@@ -1,0 +1,32 @@
+# Ambiente virtuale
+bet-env/
+.env
+
+# File di configurazione locali
+*.sqlite3
+*.db
+
+# CSV scaricati (meglio rigenerarli che salvarli su GitHub)
+data/*.csv
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+
+# File di log
+*.log
+
+# Notebook checkpoint (se usi Jupyter)
+.ipynb_checkpoints/
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# Backup temporanei
+*~
+*.swp
+*.bak
