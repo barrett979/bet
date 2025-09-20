@@ -15,7 +15,7 @@ engine = create_engine(DATABASE_URL)
 def get_all_matches() -> pd.DataFrame:
     """Recupera tutte le partite dal database"""
     query = """
-    SELECT match_id, season, league, date, hometeam, awayteam,
+    SELECT id, season, league, date, hometeam, awayteam,
            fthg, ftag, ftr, hthg, htag, htr
     FROM matches
     ORDER BY season, league, date
@@ -50,7 +50,7 @@ def calculate_cumulative_stats(df: pd.DataFrame) -> pd.DataFrame:
                 lambda x: 3 if x == 'H' else (1 if x == 'D' else 0)
             ).cumsum().shift(1).fillna(0)
 
-            home_stats.append(team_home_matches[['match_id', 'cumulative_gf_home', 'cumulative_gs_home', 'cumulative_points_home']])
+            home_stats.append(team_home_matches[['id', 'cumulative_gf_home', 'cumulative_gs_home', 'cumulative_points_home']])
 
         # Calcola statistiche cumulative per squadre in trasferta
         for team in group['awayteam'].unique():
@@ -61,7 +61,7 @@ def calculate_cumulative_stats(df: pd.DataFrame) -> pd.DataFrame:
                 lambda x: 3 if x == 'A' else (1 if x == 'D' else 0)
             ).cumsum().shift(1).fillna(0)
 
-            away_stats.append(team_away_matches[['match_id', 'cumulative_gf_away', 'cumulative_gs_away', 'cumulative_points_away']])
+            away_stats.append(team_away_matches[['id', 'cumulative_gf_away', 'cumulative_gs_away', 'cumulative_points_away']])
 
     # Unisci le statistiche
     home_df = pd.concat(home_stats) if home_stats else pd.DataFrame()
@@ -70,9 +70,9 @@ def calculate_cumulative_stats(df: pd.DataFrame) -> pd.DataFrame:
     # Merge con il DataFrame originale
     result_df = df.copy()
     if not home_df.empty:
-        result_df = result_df.merge(home_df, on='match_id', how='left')
+        result_df = result_df.merge(home_df, on='id', how='left')
     if not away_df.empty:
-        result_df = result_df.merge(away_df, on='match_id', how='left')
+        result_df = result_df.merge(away_df, on='id', how='left')
 
     return result_df
 
@@ -96,7 +96,7 @@ def calculate_form(df: pd.DataFrame, window: int = 5) -> pd.DataFrame:
             )
 
             team_matches[f'form_last{window}'] = team_matches['points'].rolling(window=window, min_periods=1).mean().shift(1)
-            form_stats.append(team_matches[['match_id', f'form_last{window}']])
+            form_stats.append(team_matches[['id', f'form_last{window}']])
 
     # Unisci le statistiche di forma
     form_df = pd.concat(form_stats) if form_stats else pd.DataFrame()
@@ -107,8 +107,8 @@ def calculate_form(df: pd.DataFrame, window: int = 5) -> pd.DataFrame:
         home_form = form_df.rename(columns={f'form_last{window}': f'form_home_last{window}'})
         away_form = form_df.rename(columns={f'form_last{window}': f'form_away_last{window}'})
 
-        result_df = result_df.merge(home_form, on='match_id', how='left')
-        result_df = result_df.merge(away_form, on='match_id', how='left')
+        result_df = result_df.merge(home_form, on='id', how='left')
+        result_df = result_df.merge(away_form, on='id', how='left')
 
     return result_df
 
@@ -153,7 +153,7 @@ def insert_features_to_db(features_df: pd.DataFrame):
 
     # Prepara i dati per l'inserimento
     features_to_insert = features_df[[
-        'match_id', 'matchday', 'cumulative_points_home', 'cumulative_points_away',
+        'id', 'matchday', 'cumulative_points_home', 'cumulative_points_away',
         'cumulative_gf_home', 'cumulative_gs_home', 'cumulative_gf_away', 'cumulative_gs_away',
         'diff_gf', 'diff_gs', 'form_home_last3', 'form_away_last3',
         'form_home_last5', 'form_away_last5', 'status_home', 'status_away'
@@ -161,6 +161,7 @@ def insert_features_to_db(features_df: pd.DataFrame):
 
     # Rinomina le colonne per matchare il database
     features_to_insert = features_to_insert.rename(columns={
+        'id': 'match_id',
         'cumulative_points_home': 'points_home',
         'cumulative_points_away': 'points_away',
         'cumulative_gf_home': 'gf_home_total',
