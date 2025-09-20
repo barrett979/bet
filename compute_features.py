@@ -27,8 +27,8 @@ def get_all_matches() -> pd.DataFrame:
 def calculate_matchday(df: pd.DataFrame) -> pd.Series:
     """Calcola il numero di giornata per ogni partita (season + league)"""
     df = df.copy()
-    df['matchday'] = df.groupby(['season', 'league']).cumcount() + 1
-    return df['matchday']
+    df['giornata'] = df.groupby(['season', 'league']).cumcount() + 1
+    return df['giornata']
 
 def calculate_cumulative_stats(df: pd.DataFrame) -> pd.DataFrame:
     """Calcola statistiche cumulative per ogni squadra"""
@@ -125,7 +125,7 @@ def calculate_promotion_status(df: pd.DataFrame) -> pd.DataFrame:
 def calculate_all_features(df: pd.DataFrame) -> pd.DataFrame:
     """Calcola tutte le feature per le partite"""
     logger.info("Calcolo giornate...")
-    df['matchday'] = calculate_matchday(df)
+    df['giornata'] = calculate_matchday(df)
 
     logger.info("Calcolo statistiche cumulative...")
     df = calculate_cumulative_stats(df)
@@ -153,7 +153,7 @@ def insert_features_to_db(features_df: pd.DataFrame):
 
     # Prepara i dati per l'inserimento
     features_to_insert = features_df[[
-        'id', 'matchday', 'cumulative_points_home', 'cumulative_points_away',
+        'id', 'season', 'league', 'giornata', 'cumulative_points_home', 'cumulative_points_away',
         'cumulative_gf_home', 'cumulative_gs_home', 'cumulative_gf_away', 'cumulative_gs_away',
         'diff_gf', 'diff_gs', 'form_home_last3', 'form_away_last3',
         'form_home_last5', 'form_away_last5', 'status_home', 'status_away'
@@ -180,7 +180,9 @@ def insert_features_to_db(features_df: pd.DataFrame):
                 INSERT INTO features_matches ({columns})
                 VALUES ({placeholders})
                 ON CONFLICT (match_id) DO UPDATE SET
-                    matchday = EXCLUDED.matchday,
+                    season = EXCLUDED.season,
+                    league = EXCLUDED.league,
+                    giornata = EXCLUDED.giornata,
                     points_home = EXCLUDED.points_home,
                     points_away = EXCLUDED.points_away,
                     gf_home_total = EXCLUDED.gf_home_total,
