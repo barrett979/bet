@@ -76,6 +76,10 @@ def import_csv(year, league):
         # parsing date
         df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
 
+        # aggiungi colonne season e league
+        df["season"] = year
+        df["league"] = league
+
         # sostituisci NaN con None per compatibilità con Postgres
         df = df.where(pd.notnull(df), None)
 
@@ -92,7 +96,7 @@ def import_csv(year, league):
                 sql = text(f"""
                     INSERT INTO matches ({columns})
                     VALUES ({placeholders})
-                    ON CONFLICT (date, hometeam, awayteam) DO UPDATE SET
+                    ON CONFLICT (season, league, date, hometeam, awayteam) DO UPDATE SET
                         fthg = EXCLUDED.fthg,
                         ftag = EXCLUDED.ftag,
                         ftr = EXCLUDED.ftr,
