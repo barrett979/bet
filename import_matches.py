@@ -92,7 +92,35 @@ def import_csv(year, league):
                 sql = text(f"""
                     INSERT INTO matches ({columns})
                     VALUES ({placeholders})
-                    ON CONFLICT (date, hometeam, awayteam) DO NOTHING;
+                    ON CONFLICT (date, hometeam, awayteam) DO UPDATE SET
+                        fthg = EXCLUDED.fthg,
+                        ftag = EXCLUDED.ftag,
+                        ftr = EXCLUDED.ftr,
+                        hthg = EXCLUDED.hthg,
+                        htag = EXCLUDED.htag,
+                        htr = EXCLUDED.htr,
+                        home_shots = EXCLUDED.home_shots,
+                        away_shots = EXCLUDED.away_shots,
+                        home_shots_on_target = EXCLUDED.home_shots_on_target,
+                        away_shots_on_target = EXCLUDED.away_shots_on_target,
+                        home_corners = EXCLUDED.home_corners,
+                        away_corners = EXCLUDED.away_corners,
+                        home_yellow = EXCLUDED.home_yellow,
+                        away_yellow = EXCLUDED.away_yellow,
+                        home_red = EXCLUDED.home_red,
+                        away_red = EXCLUDED.away_red,
+                        b365h = EXCLUDED.b365h,
+                        b365d = EXCLUDED.b365d,
+                        b365a = EXCLUDED.b365a,
+                        bwh = EXCLUDED.bwh,
+                        bwd = EXCLUDED.bwd,
+                        bwa = EXCLUDED.bwa,
+                        psh = EXCLUDED.psh,
+                        psd = EXCLUDED.psd,
+                        psa = EXCLUDED.psa,
+                        psch = EXCLUDED.psch,
+                        pscd = EXCLUDED.pscd,
+                        psca = EXCLUDED.psca;
                 """)
                 conn.execute(sql, row.to_dict())
 
